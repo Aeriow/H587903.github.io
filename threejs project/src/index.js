@@ -4,7 +4,7 @@ import * as THREE from "./three.module.js";
 
 import TextureSplattingMaterial from "./TextureSplattingMaterial.js";
 import TerrainGeometry from "./TerrainGeometry.js";
-import {MeshPhongMaterial} from "./three.module.js";
+import {MeshBasicMaterial, MeshPhongMaterial} from "./three.module.js";
 
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector("canvas"),
@@ -40,19 +40,30 @@ terrainImage.onload = () => {
   const geometry = new TerrainGeometry(50, 128, 8, terrainImage);
   const waterGeometry = new TerrainGeometry(500, 128, 0.1, terrainImage);
 
+  //loading textures
   const grass = new THREE.TextureLoader().load('images/grass.png');
   const rock = new THREE.TextureLoader().load('images/rock.png');
   const alphaMap = new THREE.TextureLoader().load('images/terrain.png');
   const water = new THREE.TextureLoader().load('images/water.jpg');
 
+  //skybox
+  const loader = new THREE.CubeTextureLoader();
+  const skybox = loader.load([
+    'images/skybox/Daylight Box_Right.bmp',
+    'images/skybox/Daylight Box_Left.bmp',
+    'images/skybox/Daylight Box_Top.bmp',
+    'images/skybox/Daylight Box_Bottom.bmp',
+    'images/skybox/Daylight Box_Front.bmp',
+    'images/skybox/Daylight Box_Back.bmp',
+  ]);
+  scene.background = skybox;
+
   grass.wrapS = THREE.RepeatWrapping;
   grass.wrapT = THREE.RepeatWrapping;
-
   grass.repeat.multiplyScalar(size / 8);
 
   rock.wrapS = THREE.RepeatWrapping;
   rock.wrapT = THREE.RepeatWrapping;
-
   rock.repeat.multiplyScalar(size / 8);
 
   const material = new TextureSplattingMaterial({

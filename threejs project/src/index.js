@@ -4,12 +4,17 @@ import * as THREE from "./three.module.js";
 
 import TextureSplattingMaterial from "./TextureSplattingMaterial.js";
 import TerrainGeometry from "./TerrainGeometry.js";
-import {MeshBasicMaterial, MeshPhongMaterial} from "./three.module.js";
+import {MeshPhongMaterial} from "./three.module.js";
+import {VRButton} from "./VRButton.js";
 
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector("canvas"),
   antialias: true,
 });
+
+//VRButton
+document.body.append(VRButton.createButton(renderer));
+renderer.xr.enabled = true;
 
 const white = new THREE.Color(THREE.Color.NAMES.white);
 renderer.setClearColor(white, 1.0);
@@ -17,13 +22,21 @@ renderer.setClearColor(white, 1.0);
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-camera.position.z += 20;
-camera.position.x += -20;
-camera.position.y += 10;
+
+/*
+* add camera as child of dolly
+* to move camera out of default camera position
+* and preventing it from returning to default
+* position when entering VR
+*/
+let dolly = new THREE.PerspectiveCamera();
+dolly.position.x = -20;
+dolly.position.y = 15;
+dolly.position.z = 20;
+dolly.add(camera);
+scene.add(dolly);
 
 camera.lookAt(0, 0, 0);
-
-scene.add(camera);
 
 const axesHelper = new THREE.AxesHelper(1);
 scene.add(axesHelper);

@@ -3,9 +3,10 @@
 import * as THREE from "./three.module.js";
 
 import TextureSplattingMaterial from "./TextureSplattingMaterial.js";
-import TerrainGeometry from "./TerrainGeometry.js";
-import {MeshPhongMaterial} from "./three.module.js";
+import TerrainGeometry from "./terrain/TerrainGeometry.js";
 import {VRButton} from "./VRButton.js";
+import {MeshPhongMaterial} from "./three.module.js";
+import Skybox from "./terrain/Skybox.js";
 
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector("canvas"),
@@ -21,8 +22,8 @@ renderer.setClearColor(white, 1.0);
 
 const scene = new THREE.Scene();
 
-//adding linear fog to the scene
-scene.fog = new THREE.Fog(0xffeedd, 1, 80);
+//adding fog to the scene
+scene.fog = new THREE.FogExp2(0xf2f8f7, 0.005);
 
 const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 
@@ -47,6 +48,10 @@ scene.add(axesHelper);
 const sun = new THREE.DirectionalLight(white, 1.0);
 scene.add(sun);
 
+//skybox
+let skybox = new Skybox();
+scene.add(skybox);
+
 const terrainImage = new Image();
 terrainImage.onload = () => {
 
@@ -61,18 +66,6 @@ terrainImage.onload = () => {
   const rock = new THREE.TextureLoader().load('images/rock.png');
   const alphaMap = new THREE.TextureLoader().load('images/terrain.png');
   const water = new THREE.TextureLoader().load('images/water.jpg');
-
-  //skybox
-  const loader = new THREE.CubeTextureLoader();
-  const skybox = loader.load([
-    'images/skybox/Daylight Box_Right.bmp',
-    'images/skybox/Daylight Box_Left.bmp',
-    'images/skybox/Daylight Box_Top.bmp',
-    'images/skybox/Daylight Box_Bottom.bmp',
-    'images/skybox/Daylight Box_Front.bmp',
-    'images/skybox/Daylight Box_Back.bmp',
-  ]);
-  scene.background = skybox;
 
   grass.wrapS = THREE.RepeatWrapping;
   grass.wrapT = THREE.RepeatWrapping;

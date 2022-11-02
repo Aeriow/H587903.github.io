@@ -1,5 +1,5 @@
-import * as THREE from "./three.module.js";
-import {getHeightmapData} from "./utils.js";
+import * as THREE from "../three.module.js";
+import {getHeightmapData} from "../utils.js";
 
 export default class TerrainGeometry extends THREE.PlaneGeometry {
     constructor(size, resolution, height, image) {

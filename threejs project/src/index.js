@@ -21,6 +21,9 @@ renderer.setClearColor(white, 1.0);
 
 const scene = new THREE.Scene();
 
+//adding linear fog to the scene
+scene.fog = new THREE.Fog(0xffeedd, 1, 80);
+
 const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 
 /*

@@ -33,7 +33,7 @@ const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 * and preventing it from returning to default
 * position when entering VR
 */
-let dolly = new THREE.PerspectiveCamera();
+const dolly = new THREE.PerspectiveCamera();
 dolly.position.x = -20;
 dolly.position.y = 15;
 dolly.position.z = 20;
@@ -45,11 +45,18 @@ camera.lookAt(0, 0, 0);
 const axesHelper = new THREE.AxesHelper(1);
 scene.add(axesHelper);
 
+const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xb1b1b1, 0.3);
+hemisphereLight.position.y = 20;
+scene.add(hemisphereLight);
+
 const sun = new THREE.DirectionalLight(white, 1.0);
+sun.position.x = 50;
+sun.position.y = 100;
+sun.position.z = 50;
 scene.add(sun);
 
 //skybox
-let skybox = new Skybox();
+const skybox = new Skybox();
 scene.add(skybox);
 
 const terrainImage = new Image();

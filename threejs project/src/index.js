@@ -23,7 +23,7 @@ renderer.setClearColor(white, 1.0);
 const scene = new THREE.Scene();
 
 //adding fog to the scene
-scene.fog = new THREE.FogExp2(0xf2f8f7, 0.005);
+scene.fog = new THREE.FogExp2(0xf2f8f7, 0.02);
 
 const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
 

@@ -20,6 +20,8 @@ let terrainMesh, waterMesh;
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 
+let lastPointerMove = Date.now();
+
 init();
 
 function loop() {
@@ -68,7 +70,6 @@ async function init() {
   //hemisphere lighting
   hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xb1b1b1, 0.3);
   hemisphereLight.position.y = 20;
-  hemisphereLight.castShadow = true;
   scene.add(hemisphereLight);
 
   //sun
@@ -99,7 +100,7 @@ async function init() {
   scene.fog = new THREE.FogExp2(0xf2f8f7, 0.01);
 
   //load image
-  let terrainImage = await Utils.loadImage('images/terrain.png');
+  const terrainImage = await Utils.loadImage('images/terrain.png');
 
   //load textures
   let grass = new THREE.TextureLoader().load('images/grass.png');
@@ -164,11 +165,16 @@ async function init() {
   renderer.setAnimationLoop(loop);
 }
 
+
 /**
  * Raycast at mouse-pointer location, and update the position of geometryHelper accordingly
  * @param event
  */
 function onPointerMove( event ) {
+
+  if (Date.now() - lastPointerMove < 59) { // 60 frames a second
+    return;
+  }
 
   pointer.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
   pointer.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
@@ -186,6 +192,8 @@ function onPointerMove( event ) {
     helper.position.copy( intersects[ 0 ].point );
 
   }
+
+  lastPointerMove = Date.now();
 }
 
 function updateRendererSize() {

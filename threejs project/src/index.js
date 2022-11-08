@@ -8,17 +8,20 @@ import {MeshBasicMaterial, MeshPhongMaterial, PlaneGeometry} from './three.modul
 import Skybox from "./objects/Skybox.js";
 import Tree from "./objects/Tree.js";
 import * as Utils from "./utils.js";
+import Forest from "./terrain/Forest.js";
 
 
 let scene, renderer, camera, dolly;
 let sun, hemisphereLight;
 let skybox, tree;
+let forest;
 let helper, geometryHelper;
 let terrainGeometry, waterGeometry;
 let terrainMesh, waterMesh;
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
+let raycastIntersects;
 
 let lastPointerMove = Date.now();
 
@@ -148,8 +151,17 @@ async function init() {
   scene.add(waterMesh);
 
   //generate trees
-  tree = new Tree(scene);
-  tree.generate();
+  tree = new Tree();
+
+  forest = new Forest(scene, tree);
+  forest.generate();
+
+  scene.add(forest);
+
+  /*
+  tree.position.set(-40,0,10);
+  tree.scale.set(1,1,1);
+  scene.add(tree);*/
 
   //create and add geometryHelper to scene - cone that visualizes raycast hit
   geometryHelper = new THREE.ConeGeometry( 4, 10, 8 );
@@ -159,7 +171,9 @@ async function init() {
   scene.add(helper);
 
   //geometryHelper position is updated in the onPointerMove function
-  window.addEventListener( 'pointermove', onPointerMove );
+  window.addEventListener('pointermove', onPointerMove);
+
+  window.addEventListener('click', onClick);
 
   //calls loop every frame
   renderer.setAnimationLoop(loop);
@@ -170,7 +184,7 @@ async function init() {
  * Raycast at mouse-pointer location, and update the position of geometryHelper accordingly
  * @param event
  */
-function onPointerMove( event ) {
+function onPointerMove(event) {
 
   if (Date.now() - lastPointerMove < 59) { // 60 frames a second
     return;
@@ -181,19 +195,42 @@ function onPointerMove( event ) {
   raycaster.setFromCamera( pointer, camera );
 
   // See if the ray from the camera into the world hits one of our meshes
-  const intersects = raycaster.intersectObject( terrainMesh );
+  raycastIntersects = raycaster.intersectObject( terrainMesh );
+
 
   // Toggle rotation bool for meshes that we clicked
-  if ( intersects.length > 0 ) {
+  if (raycastIntersects.length > 0) {
+    helper.position.set(0, 0, 0);
+    helper.lookAt(raycastIntersects[0].face.normal);
 
-    helper.position.set( 0, 0, 0 );
-    helper.lookAt( intersects[ 0 ].face.normal );
-
-    helper.position.copy( intersects[ 0 ].point );
-
+    helper.position.copy(raycastIntersects[0].point);
   }
 
   lastPointerMove = Date.now();
+}
+
+/**
+ * Raycast at mouse-pointer location, and add tree to forest at that position.
+ * Only if the first intersected object hit is the terrainMesh.
+ * @param event
+ */
+function onClick(event){
+  if (raycastIntersects.length > 0) {
+    let sceneIntersects = raycaster.intersectObjects(scene.children);
+
+    //not ideal
+    for(let i = 1; i < sceneIntersects.length; i++){
+        if(sceneIntersects[i].object === terrainMesh){
+          if(sceneIntersects[i-1].object !== helper){
+            return;
+          }
+        }
+    }
+
+    let newTree = tree.clone();
+    newTree.position.copy(raycastIntersects[0].point);
+    forest.add(newTree);
+  }
 }
 
 function updateRendererSize() {

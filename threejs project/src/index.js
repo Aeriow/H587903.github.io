@@ -24,9 +24,9 @@ init();
 
 function loop() {
   //Sun rotates with time
-  const time = Date.now() * 0.005;
-  sun.position.x = Math.sin(time * 0.01) * 150;
-  sun.position.z = Math.cos(time * 0.01) * 50;
+  const time = Date.now() * 0.015;
+  sun.position.x = Math.sin(time * 0.02) * 100;
+  sun.position.z = Math.cos(time * 0.02) * 100;
 
   updateRendererSize();
   renderer.render(scene, camera);
@@ -73,9 +73,9 @@ async function init() {
 
   //sun
   sun = new THREE.DirectionalLight(white, 1.0);
-  sun.position.x = 150;
-  sun.position.y = 150;
-  sun.position.z = 150;
+  sun.position.x = 50;
+  sun.position.y = 100;
+  sun.position.z = 50;
   sun.castShadow = true;
   scene.add(sun);
   //Increase shadow map size and add bias

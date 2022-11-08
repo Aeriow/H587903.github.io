@@ -1,129 +1,196 @@
 "use strict";
 
-import * as THREE from "./three.module.js";
-
+import * as THREE from './three.module.js';
 import TextureSplattingMaterial from "./TextureSplattingMaterial.js";
 import TerrainGeometry from "./terrain/TerrainGeometry.js";
-import {VRButton} from "./VRButton.js";
-import {MeshPhongMaterial} from "./three.module.js";
-import Skybox from "./terrain/Skybox.js";
+import { VRButton } from "./VRButton.js";
+import {MeshBasicMaterial, MeshPhongMaterial, PlaneGeometry} from './three.module.js';
+import Skybox from "./objects/Skybox.js";
+import Tree from "./objects/Tree.js";
+import * as Utils from "./utils.js";
 
-const renderer = new THREE.WebGLRenderer({
-  canvas: document.querySelector("canvas"),
-  antialias: true,
-});
-renderer.shadowMap.enabled = true;
 
-//VRButton
-document.body.append(VRButton.createButton(renderer));
-renderer.xr.enabled = true;
+let scene, renderer, camera, dolly;
+let sun, hemisphereLight;
+let skybox, tree;
+let helper, geometryHelper;
+let terrainGeometry, waterGeometry;
+let terrainMesh, waterMesh;
 
-const white = new THREE.Color(THREE.Color.NAMES.white);
-renderer.setClearColor(white, 1.0);
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
 
-const scene = new THREE.Scene();
+init();
 
-//adding fog to the scene
-scene.fog = new THREE.FogExp2(0xf2f8f7, 0.02);
+function loop() {
+  //Sun rotates with time
+  const time = Date.now() * 0.005;
+  sun.position.x = Math.sin(time * 0.01) * 150;
+  sun.position.z = Math.cos(time * 0.01) * 50;
 
-const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  updateRendererSize();
+  renderer.render(scene, camera);
+}
 
-/*
-* add camera as child of dolly
-* to move camera out of default camera position
-* and preventing it from returning to default
-* position when entering VR
-*/
-const dolly = new THREE.PerspectiveCamera();
-dolly.position.x = -20;
-dolly.position.y = 15;
-dolly.position.z = 20;
-dolly.add(camera);
-scene.add(dolly);
+async function init() {
 
-camera.lookAt(0, 0, 0);
+  renderer = new THREE.WebGLRenderer({
+    canvas: document.querySelector("canvas"),
+    antialias: true,
+  });
+  renderer.shadowMap.enabled = true;
 
-const axesHelper = new THREE.AxesHelper(1);
-scene.add(axesHelper);
+  const white = new THREE.Color(THREE.Color.NAMES.white);
+  renderer.setClearColor(white, 1.0);
 
-const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xb1b1b1, 0.3);
-hemisphereLight.position.y = 20;
-hemisphereLight.castShadow = true;
-scene.add(hemisphereLight);
+  //VRButton
+  document.body.append(VRButton.createButton(renderer));
+  renderer.xr.enabled = true;
 
-const sun = new THREE.DirectionalLight(white, 1.0);
-sun.position.x = 50;
-sun.position.y = 30;
-sun.position.z = 50;
-sun.castShadow = true;
-scene.add(sun);
-//Increase shadow map size and add bias
-sun.shadow.mapSize.width = 8192;
-sun.shadow.mapSize.height = 8192;
-sun.shadow.bias = 0.0002;
-sun.shadow.normalBias = 0.01;
-//Increase sun span to cover scene
-sun.shadow.camera.top +=20;
-sun.shadow.camera.bottom -=20;
-sun.shadow.camera.left -= 20;
-sun.shadow.camera.right += 20;
-//To see sun direction and attributes
-scene.add(new THREE.CameraHelper(sun.shadow.camera));
+  scene = new THREE.Scene();
 
-//skybox
-const skybox = new Skybox();
-scene.add(skybox);
+  camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+  /*
+  * add camera as child of dolly to move camera out of default camera position
+  * and preventing it from returning to default position when entering VR
+  */
+  dolly = new THREE.PerspectiveCamera();
+  dolly.position.set(-50, 50, -100)
 
-const terrainImage = new Image();
-terrainImage.onload = () => {
+  dolly.add(camera);
+  scene.add(dolly);
 
-  const size = 128;
-  const height = 5;
+  camera.lookAt(0, 0, 0);
 
-  const geometry = new TerrainGeometry(50, 128, 8, terrainImage);
-  const waterGeometry = new TerrainGeometry(500, 128, 0.1, terrainImage);
+  //const axesHelper = new THREE.AxesHelper(1);
+  //scene.add(axesHelper);
 
-  //loading textures
-  const grass = new THREE.TextureLoader().load('images/grass.png');
-  const rock = new THREE.TextureLoader().load('images/rock.png');
-  const alphaMap = new THREE.TextureLoader().load('images/terrain.png');
-  const water = new THREE.TextureLoader().load('images/water.jpg');
+  //hemisphere lighting
+  hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xb1b1b1, 0.3);
+  hemisphereLight.position.y = 20;
+  hemisphereLight.castShadow = true;
+  scene.add(hemisphereLight);
+
+  //sun
+  sun = new THREE.DirectionalLight(white, 1.0);
+  sun.position.x = 150;
+  sun.position.y = 150;
+  sun.position.z = 150;
+  sun.castShadow = true;
+  scene.add(sun);
+  //Increase shadow map size and add bias
+  sun.shadow.mapSize.width = 8192;
+  sun.shadow.mapSize.height = 8192;
+  sun.shadow.bias = 0.0002;
+  sun.shadow.normalBias = 0.01;
+  //Increase sun span to cover scene
+  sun.shadow.camera.top +=100;
+  sun.shadow.camera.bottom -=100;
+  sun.shadow.camera.left -= 100;
+  sun.shadow.camera.right += 100;
+  //To see sun direction and attributes
+  scene.add(new THREE.CameraHelper(sun.shadow.camera));
+
+  //skybox
+  skybox = new Skybox();
+  scene.add(skybox);
+
+  //adding fog to the scene
+  scene.fog = new THREE.FogExp2(0xf2f8f7, 0.01);
+
+  //load image
+  let terrainImage = await Utils.loadImage('images/terrain.png');
+
+  //load textures
+  let grass = new THREE.TextureLoader().load('images/grass.png');
+  let rock = new THREE.TextureLoader().load('images/rock.png');
+  let alphaMap = new THREE.TextureLoader().load('images/terrain.png');
+  let water = new THREE.TextureLoader().load('images/water.jpg');
 
   grass.wrapS = THREE.RepeatWrapping;
   grass.wrapT = THREE.RepeatWrapping;
-  grass.repeat.multiplyScalar(size / 8);
+  grass.repeat.multiplyScalar(128 / 8);
 
   rock.wrapS = THREE.RepeatWrapping;
   rock.wrapT = THREE.RepeatWrapping;
-  rock.repeat.multiplyScalar(size / 8);
+  rock.repeat.multiplyScalar(128 / 8);
 
-  const material = new TextureSplattingMaterial({
+  //create materials
+  let terrainMaterial = new TextureSplattingMaterial({
     color: THREE.Color.NAMES.white,
     colorMaps: [grass, rock],
     alphaMaps: [alphaMap]
   });
 
-  const waterMaterial = new MeshPhongMaterial({
+  let waterMaterial = new MeshBasicMaterial({
     map: water,
-    transparent: true
+    side: THREE.DoubleSide
   });
 
-  const mesh = new THREE.Mesh(geometry, material);
-  const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
-  mesh.receiveShadow = true;
-  mesh.castShadow = true;
+  //create geometry
+  terrainGeometry = new TerrainGeometry(256, 128, 32, terrainImage);
+  waterGeometry = new PlaneGeometry(500, 500, 1, 1);
+
+  //create mesh
+  terrainMesh = new THREE.Mesh(terrainGeometry, terrainMaterial);
+  waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
+  terrainMesh.receiveShadow = true;
+  terrainMesh.castShadow = true;
   waterMesh.receiveShadow = true;
 
-  scene.add(mesh);
+  //Rotate and move water plane
+  waterMesh.rotation.x = Math.PI / 2;
+  waterMesh.position.y = 0.2;
+
+  //add to scene
+  scene.add(terrainMesh);
   scene.add(waterMesh);
-};
 
-terrainImage.src = 'images/terrain.png';
+  //generate trees
+  tree = new Tree(scene);
+  tree.generate();
 
+  //create and add geometryHelper to scene - cone that visualizes raycast hit
+  geometryHelper = new THREE.ConeGeometry( 4, 10, 8 );
+  geometryHelper.translate(0,0,0);
+  geometryHelper.rotateX(Math.PI / 2);
+  helper = new THREE.Mesh(geometryHelper, new THREE.MeshNormalMaterial());
+  scene.add(helper);
+
+  //geometryHelper position is updated in the onPointerMove function
+  window.addEventListener( 'pointermove', onPointerMove );
+
+  //calls loop every frame
+  renderer.setAnimationLoop(loop);
+}
+
+/**
+ * Raycast at mouse-pointer location, and update the position of geometryHelper accordingly
+ * @param event
+ */
+function onPointerMove( event ) {
+
+  pointer.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
+  pointer.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
+  raycaster.setFromCamera( pointer, camera );
+
+  // See if the ray from the camera into the world hits one of our meshes
+  const intersects = raycaster.intersectObject( terrainMesh );
+
+  // Toggle rotation bool for meshes that we clicked
+  if ( intersects.length > 0 ) {
+
+    helper.position.set( 0, 0, 0 );
+    helper.lookAt( intersects[ 0 ].face.normal );
+
+    helper.position.copy( intersects[ 0 ].point );
+
+  }
+}
 
 function updateRendererSize() {
   const { x: currentWidth, y: currentHeight } = renderer.getSize(
-    new THREE.Vector2()
+      new THREE.Vector2()
   );
   const width = renderer.domElement.clientWidth;
   const height = renderer.domElement.clientHeight;
@@ -134,15 +201,3 @@ function updateRendererSize() {
     camera.updateProjectionMatrix();
   }
 }
-
-function loop() {
-  //Sun rotates with time
-  const time = Date.now() * 0.005;
-  sun.position.x = Math.sin(time * 0.01) * 50;
-  sun.position.z = Math.cos(time * 0.01) * 30;
-
-  updateRendererSize();
-  renderer.render(scene, camera);
-}
-
-renderer.setAnimationLoop(loop);

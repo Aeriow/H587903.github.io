@@ -12,6 +12,7 @@ const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector("canvas"),
   antialias: true,
 });
+renderer.shadowMap.enabled = true;
 
 //VRButton
 document.body.append(VRButton.createButton(renderer));
@@ -47,13 +48,27 @@ scene.add(axesHelper);
 
 const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xb1b1b1, 0.3);
 hemisphereLight.position.y = 20;
+hemisphereLight.castShadow = true;
 scene.add(hemisphereLight);
 
 const sun = new THREE.DirectionalLight(white, 1.0);
 sun.position.x = 50;
-sun.position.y = 100;
+sun.position.y = 30;
 sun.position.z = 50;
+sun.castShadow = true;
 scene.add(sun);
+//Increase shadow map size and add bias
+sun.shadow.mapSize.width = 8192;
+sun.shadow.mapSize.height = 8192;
+sun.shadow.bias = 0.0002;
+sun.shadow.normalBias = 0.01;
+//Increase sun span to cover scene
+sun.shadow.camera.top +=20;
+sun.shadow.camera.bottom -=20;
+sun.shadow.camera.left -= 20;
+sun.shadow.camera.right += 20;
+//To see sun direction and attributes
+scene.add(new THREE.CameraHelper(sun.shadow.camera));
 
 //skybox
 const skybox = new Skybox();
@@ -95,6 +110,9 @@ terrainImage.onload = () => {
 
   const mesh = new THREE.Mesh(geometry, material);
   const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
+  mesh.receiveShadow = true;
+  mesh.castShadow = true;
+  waterMesh.receiveShadow = true;
 
   scene.add(mesh);
   scene.add(waterMesh);
@@ -118,6 +136,11 @@ function updateRendererSize() {
 }
 
 function loop() {
+  //Sun rotates with time
+  const time = Date.now() * 0.005;
+  sun.position.x = Math.sin(time * 0.01) * 50;
+  sun.position.z = Math.cos(time * 0.01) * 30;
+
   updateRendererSize();
   renderer.render(scene, camera);
 }

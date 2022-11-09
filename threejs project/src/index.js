@@ -44,6 +44,7 @@ async function init() {
     antialias: true,
   });
   renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const white = new THREE.Color(THREE.Color.NAMES.white);
   renderer.setClearColor(white, 1.0);

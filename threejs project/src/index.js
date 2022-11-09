@@ -130,6 +130,7 @@ async function init() {
   let waterMaterial = new MeshPhongMaterial({
     map: water,
     side: THREE.DoubleSide
+
   });
 
   //create geometry

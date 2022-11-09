@@ -127,7 +127,7 @@ async function init() {
     alphaMaps: [alphaMap]
   });
 
-  let waterMaterial = new MeshBasicMaterial({
+  let waterMaterial = new MeshPhongMaterial({
     map: water,
     side: THREE.DoubleSide
   });

@@ -8,7 +8,7 @@ export default class Skybox extends Object3D{
         super();
 
         const loader = new THREE.TextureLoader();
-        let skyGeometry = new THREE.BoxGeometry(500, 500, 500);
+        let skyGeometry = new THREE.BoxGeometry(900, 900, 900);
         let cubematerials =
             [
                 new MeshBasicMaterial({map: loader.load('images/skybox/Daylight Box_Right.bmp'), side: THREE.BackSide, fog: false}),

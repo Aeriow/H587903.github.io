@@ -11,6 +11,7 @@ import * as Utils from "./utils.js";
 import Forest from "./terrain/Forest.js";
 
 
+
 let scene, renderer, camera, dolly;
 let sun, hemisphereLight, moon;
 let skybox, tree;
@@ -19,6 +20,8 @@ let helper, geometryHelper;
 let terrainGeometry, waterGeometry;
 let terrainMesh, waterMesh, moonMesh, sunMesh;
 let sky;
+let rain;
+let rainPos = new THREE.Vector3();
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -66,6 +69,9 @@ function loop() {
     sky.material.uniforms.topColor.value.setRGB(0.05,0.11,0.2);//best r0.05, g0.08, b0.27
     sky.material.uniforms.bottomColor.value.setRGB(0.2,0.2,0.2);
   }
+
+  //Rain animate
+  rainVariation();
 
   updateRendererSize();
   renderer.render(scene, camera);
@@ -160,6 +166,30 @@ async function init() {
   sun.shadow.camera.far = 1000;
   //To see sun direction and attributes
   //scene.add(new THREE.CameraHelper(sun.shadow.camera));
+
+  //Rain
+  const rainGeometry = new THREE.BufferGeometry();
+  const rainPoints = [];
+  //Generate rainGeometry points
+  for (let i = 0; i < 15000; i++) {
+    rainPoints.push(
+        Math.random() * 400 - 200,
+        Math.random() * 500 - 250,
+        Math.random() * 400 - 200
+    );
+  }
+
+  rainGeometry.setAttribute( 'position', new THREE.Float32BufferAttribute( rainPoints, 3 ) );
+
+  const rainMaterial = new THREE.PointsMaterial( {
+    color: 0xaaaaaa,
+    size: 0.1,
+    transparent: true
+  } );
+
+  rain = new THREE.Points( rainGeometry, rainMaterial );
+  scene.add(rain);
+
 
   //skybox
   //skybox = new Skybox();
@@ -316,6 +346,21 @@ function onClick(event){
     newTree.position.copy(raycastIntersects[0].point);
     forest.add(newTree);
   }
+}
+
+//Move raindrops when called, called from animation loop
+function rainVariation() {
+  let positionAttribute = rain.geometry.getAttribute('position');
+
+  for ( let i = 0; i < positionAttribute.count; i++) {
+    rainPos.fromBufferAttribute(positionAttribute, i);
+    rainPos.y -= 1;
+    if (rainPos.y < - 60) {
+      rainPos.y = Math.random()*190;
+    }
+    positionAttribute.setXYZ( i, rainPos.x, rainPos.y, rainPos.z );
+  }
+  positionAttribute.needsUpdate = true;
 }
 
 function updateRendererSize() {

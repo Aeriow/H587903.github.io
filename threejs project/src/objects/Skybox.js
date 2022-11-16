@@ -1,24 +1,27 @@
 "use strict";
 
 import * as THREE from "../three.module.js";
-import {MeshBasicMaterial, Object3D} from "../three.module.js";
+import {Mesh, MeshBasicMaterial, Object3D} from "../three.module.js";
 
-export default class Skybox extends Object3D{
-    constructor() {
+export default class Skybox extends Mesh {
+    constructor(vertex, fragment, hemisphereLightColor) {
         super();
 
-        const loader = new THREE.TextureLoader();
-        let skyGeometry = new THREE.BoxGeometry(900, 900, 900);
-        let cubematerials =
-            [
-                new MeshBasicMaterial({map: loader.load('images/skybox/Daylight Box_Right.bmp'), side: THREE.BackSide, fog: false}),
-                new MeshBasicMaterial({map: loader.load('images/skybox/Daylight Box_Left.bmp'), side: THREE.BackSide, fog: false}),
-                new MeshBasicMaterial({map: loader.load('images/skybox/Daylight Box_Top.bmp'), side: THREE.BackSide, fog: false}),
-                new MeshBasicMaterial({map: loader.load('images/skybox/Daylight Box_Bottom.bmp'), side: THREE.BackSide, fog: false}),
-                new MeshBasicMaterial({map: loader.load('images/skybox/Daylight Box_Front.bmp'), side: THREE.BackSide, fog: false}),
-                new MeshBasicMaterial({map: loader.load('images/skybox/Daylight Box_Back.bmp'), side: THREE.BackSide, fog: false})
-            ];
-        let skybox = new THREE.Mesh(skyGeometry, cubematerials);
-        this.add(skybox);
+        let uniforms = {
+            topColor: {type: "c", value: new THREE.Color(0x0077ff)},
+            bottomColor: {type: "c", value: new THREE.Color(0xffffff)},
+            offset: {type: "f", value: 33},
+            exponent: {type: "f", value: 0.6}
+        }
+        uniforms.topColor.value.copy(hemisphereLightColor);
+
+        this.geometry = new THREE.SphereGeometry(500, 64, 32);
+        this.material = new THREE.ShaderMaterial({
+            vertexShader: vertex,
+            fragmentShader: fragment,
+            uniforms: uniforms,
+            side: THREE.DoubleSide
+        });
+
     }
 }

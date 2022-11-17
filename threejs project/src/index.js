@@ -121,6 +121,7 @@ async function init() {
   scene.add(forest);
 
   //create and add geometryHelper to scene - cone that visualizes raycast hit
+  /*
   geometryHelper = new THREE.ConeGeometry( 4, 10, 8 );
   geometryHelper.translate(0,0,0);
   geometryHelper.rotateX(Math.PI / 2);
@@ -131,7 +132,8 @@ async function init() {
   window.addEventListener('pointermove', onPointerMove);
 
   //place tree on click
-  //window.addEventListener('click', onClick);
+  window.addEventListener('click', onClick);
+  */
 
   //calls loop every frame
   renderer.setAnimationLoop(loop);

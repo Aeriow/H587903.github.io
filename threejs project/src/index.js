@@ -131,7 +131,7 @@ async function init() {
   window.addEventListener('pointermove', onPointerMove);
 
   //place tree on click
-  window.addEventListener('click', onClick);
+  //window.addEventListener('click', onClick);
 
   //calls loop every frame
   renderer.setAnimationLoop(loop);

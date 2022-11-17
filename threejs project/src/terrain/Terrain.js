@@ -8,6 +8,8 @@ export default class Terrain extends Mesh {
     constructor(terrainImage) {
         super();
 
+        this.name = 'terrain';
+
         //load textures
         let grass = new THREE.TextureLoader().load('images/grass.png');
         let rock = new THREE.TextureLoader().load('images/rock.png');
@@ -45,6 +47,7 @@ export default class Terrain extends Mesh {
         for (let i = 0; i < data.length; i++) {
             geometry.attributes.position.setY(i, data[i] * height);
         }
+
         return geometry;
     }
 }

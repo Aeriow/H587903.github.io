@@ -15,7 +15,6 @@ import Skybox from "./objects/Skybox.js";
 import DayNightCycle from "./weather/DayNightCycle.js";
 
 
-
 let scene, renderer, camera, dolly;
 let sun, hemisphereLight, moon;
 let skybox, tree;
@@ -23,7 +22,6 @@ let forest;
 let helper, geometryHelper;
 let rain, water, terrain;
 let dayNightCycle;
-
 
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
@@ -119,9 +117,8 @@ async function init() {
   //generate trees
   tree = new Tree();
 
-  forest = new Forest(scene, tree);
-  forest.generate();
-
+  forest = new Forest(tree, terrain);
+  forest.generate(100, 256, 256, 2);
   scene.add(forest);
 
   //create and add geometryHelper to scene - cone that visualizes raycast hit
@@ -154,17 +151,15 @@ function onPointerMove(event) {
 
   pointer.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
   pointer.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
-  raycaster.setFromCamera( pointer, camera );
+  raycaster.setFromCamera(pointer, camera);
 
   // See if the ray from the camera into the world hits one of our meshes
-  raycastIntersects = raycaster.intersectObject( terrain );
-
+  raycastIntersects = raycaster.intersectObject(terrain);
 
   // Toggle rotation bool for meshes that we clicked
   if (raycastIntersects.length > 0) {
     helper.position.set(0, 0, 0);
     helper.lookAt(raycastIntersects[0].face.normal);
-
     helper.position.copy(raycastIntersects[0].point);
   }
 
@@ -177,26 +172,18 @@ function onPointerMove(event) {
  * @param event
  */
 function onClick(event){
-  if (raycastIntersects.length > 0) {
-    let sceneIntersects = raycaster.intersectObjects(scene.children);
+  let raycastIntersects = raycaster.intersectObject(terrain);
 
-    //not ideal
-    for(let i = 1; i < sceneIntersects.length; i++){
-      if(sceneIntersects[i].object === terrain){
-        if(sceneIntersects[i-1].object !== helper){
-          return;
-        }
-      }
-    }
+  if (raycastIntersects.length > 0) {
+    if(raycastIntersects[0].point.y < 0.5 || raycastIntersects[0].point.y >= 20) {
+      return;
+    };
 
     let newTree = tree.clone();
     newTree.position.copy(raycastIntersects[0].point);
     forest.add(newTree);
   }
 }
-
-
-
 
 function updateRendererSize() {
   const { x: currentWidth, y: currentHeight } = renderer.getSize(

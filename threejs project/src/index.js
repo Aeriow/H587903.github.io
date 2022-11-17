@@ -2,7 +2,6 @@
 
 import * as THREE from './three.module.js';
 import { VRButton } from "./VRButton.js";
-import {Mesh, MeshPhongMaterial, PlaneGeometry} from './three.module.js';
 import Tree from "./objects/Tree.js";
 import Forest from "./terrain/Forest.js";
 import Rain from "./weather/Rain.js"
@@ -68,7 +67,7 @@ async function init() {
   * and preventing it from returning to default position when entering VR
   */
   dolly = new THREE.PerspectiveCamera();
-  dolly.position.set(-100, 70, -100)
+  dolly.position.set(-58, 23, -55)
 
   dolly.add(camera);
   scene.add(dolly);
@@ -102,7 +101,7 @@ async function init() {
   dayNightCycle = new DayNightCycle(sun, moon, skybox);
 
   //adding fog to the scene
-  scene.fog = new THREE.Fog(0xf2f8f7, 1, 1000);
+  scene.fog = new THREE.Fog(0xf2f8f7, 1, 900);
 
   let terrainImage = await Utils.loadImage('images/terrain.png');
   terrain = new Terrain(terrainImage);
@@ -118,7 +117,7 @@ async function init() {
   tree = new Tree();
 
   forest = new Forest(tree, terrain);
-  forest.generate(100, 256, 256, 2);
+  forest.generate(50, 256, 256, 2);
   scene.add(forest);
 
   //create and add geometryHelper to scene - cone that visualizes raycast hit

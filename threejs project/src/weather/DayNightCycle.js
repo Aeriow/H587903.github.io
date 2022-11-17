@@ -18,7 +18,7 @@ export default class DayNightCycle {
     }
 
     update(){
-        let time = new Date().getTime() * 0.0002;
+        let time = new Date().getTime() * 0.0001;
 
         let nsin = Math.sin(time);
         let ncos = Math.cos(time);
